@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { acceptFriendRequest, getFriendRequest } from "../lib/Api";
 import NoNotificationsFound from "./NoNotificationFound";
@@ -10,12 +10,20 @@ import {
   UsersIcon 
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import useNotificationStore from "../store/useNotificationStore";
+
 const NotificationPage = () => {
   const queryClient = useQueryClient();
   const { data: friend_Requests, isLoading } = useQuery({
     queryKey: ["friendRequest"],
     queryFn: getFriendRequest,
   });
+
+  const { 
+    messageNotifications, 
+    clearMessageNotifications, 
+    removeNotification 
+  } = useNotificationStore();
 
   const { mutate: acceptFriendRequestMutation, isPending } = useMutation({
     mutationFn: acceptFriendRequest,
@@ -24,11 +32,13 @@ const NotificationPage = () => {
       queryClient.invalidateQueries({ queryKey: ["friends"] });
     },
   });
+
   const incomingFriendRequests = friend_Requests?.incoming_requests || [];
   const acceptedFriendRequests = friend_Requests?.accepted_requests || [];
-  // console.log("incomingFriendRequests", incomingFriendRequests);
-  // console.log("acceptedFriendRequests", acceptedFriendRequests);
-return (
+
+  const messageNotificationsOnly = messageNotifications.filter(n => n.type === "message");
+
+  return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="container mx-auto space-y-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -41,12 +51,72 @@ return (
           </Link>
         </div>
 
-{isLoading ? (
+        {isLoading ? (
           <div className="flex justify-center py-12">
             <span className="loading loading-spinner loading-lg" />
           </div>
         ) : (
           <>
+            {/* Message Notifications */}
+            {messageNotificationsOnly.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <MessageSquareIcon className="h-6 w-6 text-primary" />
+                    <div>
+                      <h3 className="text-xl font-semibold">
+                        Messages
+                      </h3>
+                      <p className="text-sm opacity-70">
+                        Recent messages from your contacts
+                      </p>
+                    </div>
+                    <span className="badge badge-primary">
+                      {messageNotificationsOnly.length}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={clearMessageNotifications}
+                    className="btn btn-ghost btn-sm"
+                  >
+                    Clear all
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {messageNotificationsOnly.slice(0, 10).map((notification) => (
+                    <Link
+                      key={notification.id}
+                      to={`/chat/${notification.senderId}`}
+                      onClick={() => removeNotification(notification.id)}
+                      className="card bg-base-200 hover:shadow-lg transition-all duration-300"
+                    >
+                      <div className="card-body p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="avatar size-10 rounded-full">
+                            <img
+                              src={notification.senderImage || "/default-avatar.png"}
+                              alt={notification.senderName}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">
+                              {notification.senderName}
+                            </h4>
+                            <p className="text-sm opacity-70 truncate">
+                              {notification.message}
+                            </p>
+                          </div>
+                          <MessageSquareIcon className="size-4 text-primary" />
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Friend Requests */}
             {incomingFriendRequests.length > 0 && (
               <section className="space-y-6">
                 <div className="flex items-center gap-3">
@@ -110,7 +180,7 @@ return (
               </section>
             )}
 
-{/* NEW CONNECTIONS */}
+            {/* New Connections */}
             {acceptedFriendRequests.length > 0 && (
               <section className="space-y-6">
                 <div className="flex items-center gap-3">
@@ -176,8 +246,9 @@ return (
               </section>
             )}
 
-            {incomingFriendRequests.length === 0 &&
-              acceptedFriendRequests.length === 0 && <NoNotificationsFound />}
+            {incomingFriendRequests.length === 0 && 
+             acceptedFriendRequests.length === 0 && 
+             messageNotificationsOnly.length === 0 && <NoNotificationsFound />}
           </>
         )}
       </div>

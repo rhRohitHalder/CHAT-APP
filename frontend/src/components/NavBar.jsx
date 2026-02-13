@@ -53,17 +53,17 @@ const NavBar = () => {
   };
 
   // Responsive dimensions
-  const navHeight = `${getResponsiveValue(4, 4)}rem`; // Navigation bar height
-  const iconSize = getResponsiveValue(1.5, 1.5); // Base size for icons
-  const textSize = getResponsiveValue(1.25, 1.25); // Base size for text
+  const navHeight = `${getResponsiveValue(2.75, 2.75)}rem`; // Navigation bar height
+  const iconSize = getResponsiveValue(1.15, 1.15); // Base size for icons
+  const textSize = getResponsiveValue(0.9, 0.9); // Base size for text
 
   return (
-    <nav
+      <nav
       className="bg-base-200 border-b border-base-300 sticky top-0 z-30 w-full flex items-center"
       style={{
         height: navHeight,
-        minHeight: "4rem",
-        maxHeight: "6rem",
+        minHeight: "2.75rem",
+        maxHeight: "3.25rem",
       }}
     >
       <div className="w-full px-2 sm:px-6 lg:px-8">

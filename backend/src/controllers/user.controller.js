@@ -169,6 +169,31 @@ async function Reject_friend_request(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+async function update_profile(req, res) {
+  try {
+    const userId = req.user._id;
+    const { Fullname, bio, location, nativeLanguage, learningLanguage, profilePic } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { 
+        Fullname, 
+        bio, 
+        location, 
+        nativeLanguage, 
+        learningLanguage,
+        profilePic
+      },
+      { new: true, runValidators: true }
+    ).select("-password -email");
+
+    res.status(200).json({ user: updatedUser });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
 export {
   get_Recommended_Users,
   get_My_Friends,
@@ -177,4 +202,5 @@ export {
   Reject_friend_request,
   get_My_FriendRequest,
   get_Outgoing_FriendRequest,
+  update_profile,
 };

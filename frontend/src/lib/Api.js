@@ -73,6 +73,12 @@ async function getStreamToken() {
     throw error;
   }
 }
+
+async function updateProfile(userData) {
+  const res = await axios_instance.put("/users/profile", userData);
+  return res.data;
+}
+
 export {
   signupUser,
   loginUser,
@@ -87,4 +93,5 @@ export {
   acceptFriendRequest,
   rejectFriendRequest,
   getStreamToken,
+  updateProfile,
 };

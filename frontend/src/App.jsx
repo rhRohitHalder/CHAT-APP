@@ -1,10 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
-import LoginPage from "./pages/LoginPage.jsx"; // fixed case
-import ChatPage from "./pages/ChatPage.jsx"; // fixed case
+import LoginPage from "./pages/LoginPage.jsx";
+import ChatPage from "./pages/ChatPage.jsx";
 import Signup from "./pages/SignUpPage.jsx";
 import NotificationPage from "./pages/NotificationPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 import OnboardingPage from "./pages/OnboardingPage.jsx";
 import CallPage from "./pages/CallPage.jsx";
 
@@ -13,6 +14,7 @@ import { PageLoader } from "./components/PageLoader.jsx";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./components/layout.jsx";
 import { useThemeStore } from "./store/useTheme.js";
+import GlobalMessageListener from "./components/GlobalMessageListener.jsx";
 
 function App() {
   const { isLoading, authUserData } = useAuthUser();
@@ -28,6 +30,7 @@ function App() {
   }
   return (
     <div className=" h-screen" data-theme={theme}>
+      <GlobalMessageListener />
       <Routes>
         <Route
           path="/"
@@ -109,6 +112,18 @@ function App() {
             isAuthenticated && isOnboarded ? (
               <Layout>
                 <FriendsPage />
+              </Layout>
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Layout showNavbar={false}>
+                <ProfilePage />
               </Layout>
             ) : (
               <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />

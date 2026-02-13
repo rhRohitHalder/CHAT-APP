@@ -8,6 +8,7 @@ import {
   Reject_friend_request,
   get_My_FriendRequest,
   get_Outgoing_FriendRequest,
+  update_profile,
 } from "../controllers/user.controller.js";
 const router = Router();
 
@@ -17,6 +18,7 @@ router.use(protect_route);
 router
   .get("/", get_Recommended_Users)
   .get("/friends", get_My_Friends)
+  .put("/profile", update_profile)
 
   .post("/friend-rqst/:id", send_friend_request)
   .put("/friend-rqst/:id/accept", accept_friend_request)
