@@ -10,6 +10,12 @@ async function loginUser(loginData) {
   const res = await axios_instance.post("/auth/login", loginData);
   return res.data;
 }
+
+async function googleLogin(credential) {
+  const res = await axios_instance.post("/auth/google", { credential });
+  return res.data;
+}
+
 async function logoutUser() {
   const res = await axios_instance.post("/auth/logout");
   return res.data;
@@ -82,6 +88,7 @@ async function updateProfile(userData) {
 export {
   signupUser,
   loginUser,
+  googleLogin,
   logoutUser,
   getAuthUser,
   complete_onBoadring,

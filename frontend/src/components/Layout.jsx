@@ -13,7 +13,7 @@ const Layout = ({ children, showNavbar = true }) => {
         {/* Main Content */}
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           {showNavbar && <NavBar />}
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-y-auto">
             {children}
           </main>
         </div>

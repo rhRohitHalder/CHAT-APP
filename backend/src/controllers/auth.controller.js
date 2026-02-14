@@ -1,6 +1,66 @@
+import { OAuth2Client } from "google-auth-library";
 import { UpsertStreamUser } from "../lib/stream.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+async function googleLogin(req, res) {
+  const { credential } = req.body;
+  
+  try {
+    if (!credential) {
+      return res.status(400).json({ message: "No credential provided" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        Fullname: name,
+        email,
+        password: Math.random().toString(36).slice(-8),
+        profilePic: picture,
+        isOnboarded: false,
+      });
+    }
+
+    try {
+      await UpsertStreamUser({
+        id: user._id.toString(),
+        name: user.Fullname,
+        profilePic: user.profilePic || "",
+      });
+    } catch (error) {
+      console.log("Error creating Stream user:", error);
+    }
+
+    const token = jwt.sign({ UserId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.cookie("_jwt", token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.log("Error in Google login:", error);
+    res.status(500).json({ message: "Google authentication failed" });
+  }
+}
 
 async function get_User_signup(req, res) {
   const { Fullname, email, password } = req.body;
@@ -174,4 +234,4 @@ async function get_User_onBoarded(req, res) {
   }
 }
 
-export { get_User_signup, get_User_login, get_User_logout, get_User_onBoarded };
+export { get_User_signup, get_User_login, get_User_logout, get_User_onBoarded, googleLogin };

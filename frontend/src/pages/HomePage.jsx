@@ -71,8 +71,8 @@ const HomePage = () => {
   }, [outGoingFriendReqs]);
 
   return (
-    <div className="min-h-screen bg-base-100 p-4 sm:p-6 lg:p-8">
-      <div className="container mx-auto space-y-10">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <div className="container mx-auto space-y-10 pb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Your Friends
@@ -89,7 +89,7 @@ const HomePage = () => {
         ) : friends.length === 0 ? (
           <NoFriendsFound />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {friends.map((friend) => (
               <FriendCard key={friend._id} friend={friend} />
             ))}
