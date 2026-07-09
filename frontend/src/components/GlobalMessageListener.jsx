@@ -8,10 +8,9 @@ import toast from "react-hot-toast";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
-let initializedRef = { current: false };
-
 const GlobalMessageListener = () => {
   const { authUserData } = useAuthUser();
+  const initializedRef = useRef(false);
   
   const addMessageNotification = useNotificationStore((state) => state.addMessageNotification);
   const incrementUnread = useNotificationStore((state) => state.incrementUnread);

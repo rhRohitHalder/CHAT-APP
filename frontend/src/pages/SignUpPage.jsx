@@ -3,6 +3,8 @@ import { Cat } from "lucide-react";
 import { Link } from "react-router-dom";
 import useSignUp from "../hooks/useSignUp";
 import { useThemeStore } from "../store/useTheme";
+import { GoogleLogin } from "@react-oauth/google";
+import useGoogleLogin from "../hooks/useGoogleLogin";
 
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
@@ -29,6 +31,7 @@ const SignUpPage = () => {
   //   },
   // });
   const { isPending, error, signUp_mutation } = useSignUp();
+  const { mutate: googleLoginMutation, isPending: googlePending } = useGoogleLogin();
   const handleSignUp = (e) => {
     e.preventDefault();
 
@@ -194,7 +197,7 @@ const SignUpPage = () => {
                 </div>
 
                 {/* SUBMIT BUTTON */}
-                <button type="submit" className="btn btn-primary w-full mt-4">
+                <button type="submit" className="btn btn-primary w-full mt-4" disabled={isPending || googlePending}>
                   {isPending ? (
                     <>
                       <span className="loading loading-spinner loading-xs"></span>
@@ -204,6 +207,19 @@ const SignUpPage = () => {
                     "Create Account"
                   )}
                 </button>
+
+                <div className="flex flex-col items-center gap-3 mt-4">
+                  <div className="divider text-xs opacity-50 uppercase my-0 w-full">Or</div>
+                  <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                      googleLoginMutation(credentialResponse.credential);
+                    }}
+                    onError={() => {
+                      console.error("Google Signup failed");
+                    }}
+                    useOneTap
+                  />
+                </div>
                 {/* REDIRECT TO LOGIN */}
                 <div className="text-center mt-4">
                   <p className="text-sm">

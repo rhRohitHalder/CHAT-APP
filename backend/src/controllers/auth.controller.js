@@ -163,8 +163,9 @@ async function get_User_login(req, res) {
     res.cookie("_jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true, // cookie not accessible via client-side JS - prevent XSS attacks
-      sameSite: "strict", // CSRF protection
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Use 'lax' in development for cross-origin requests
       secure: process.env.NODE_ENV === "production", // cookie only sent over HTTPS in production
+      path: "/", // Ensure the cookie is sent for all paths
     });
     res.status(200).json({ success: true, user });
   } catch (error) {

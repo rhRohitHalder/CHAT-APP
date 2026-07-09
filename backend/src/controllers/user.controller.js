@@ -96,7 +96,7 @@ async function accept_friend_request(req, res) {
         .status(403)
         .json({ message: "Unauthorized to accept this request" });
     }
-    friendRequest.status == "accepted";
+    friendRequest.status = "accepted";
     await friendRequest.save();
     // add each user to each other's friend list
     //$addToSet:add element to set element to an array if they are not already there
@@ -106,7 +106,11 @@ async function accept_friend_request(req, res) {
     await User.findByIdAndUpdate(friendRequest.recipient, {
       $addToSet: { friends: friendRequest.sender },
     });
-  } catch (error) {}
+    res.status(200).json({ message: "Friend request accepted successfully.", friendRequest });
+  } catch (error) {
+    console.error("Error accepting friend request:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 }
 async function get_My_FriendRequest(req, res) {
   try {
@@ -140,7 +144,7 @@ async function get_Outgoing_FriendRequest(req, res) {
       status: "pending",
     }).populate(
       "recipient",
-      "fullname profilePic nativeLanguage learningLanguage location"
+      "Fullname profilePic nativeLanguage learningLanguage location"
     );
     res.status(200).json(outgoing_requests);
   } catch (error) {
@@ -161,7 +165,7 @@ async function Reject_friend_request(req, res) {
         .status(403)
         .json({ message: "Unauthorized to accept this request" });
     }
-    friendRequest.status == "rejected";
+    friendRequest.status = "rejected";
     await friendRequest.save();
     res.status(200).json({ message: "Friend request rejected successfully." });
   } catch (error) {

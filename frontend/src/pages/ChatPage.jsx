@@ -16,6 +16,7 @@ import ChatLoader from "../components/ChatLoader";
 import ChatHeader from "../components/ChatHeader.jsx";
 import useNotificationStore from "../store/useNotificationStore";
 import useStreamChatStore from "../store/useStreamChatStore";
+import SmartReplySuggestions from "../components/SmartReplySuggestions.jsx";
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 const ChatPage = () => {
@@ -88,7 +89,7 @@ const ChatPage = () => {
     };
     
     initChat();
-  }, [tokenData?.token, authUserData?._id, target_User_Id]);
+  }, [tokenData?.token, authUserData?.user?._id, target_User_Id]);
 
   const handleVideoCall = async () => {
     if (channel) {
@@ -120,6 +121,7 @@ const ChatPage = () => {
               <div className="flex-1 overflow-y-auto">
                 <MessageList />
               </div>
+              <SmartReplySuggestions />
               <div className="flex-shrink-0 border-t border-base-300">
                 <MessageInput focus />
               </div>

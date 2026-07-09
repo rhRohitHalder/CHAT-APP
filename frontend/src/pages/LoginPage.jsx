@@ -3,6 +3,8 @@ import { ShipWheelIcon } from "lucide-react";
 import { Link } from "react-router";
 import useLogin from "../hooks/useLogin";
 import { useThemeStore } from "../store/useTheme";
+import { GoogleLogin } from "@react-oauth/google";
+import useGoogleLogin from "../hooks/useGoogleLogin";
 
 const LoginPAge = () => {
   const [loginData, setloginData] = useState({
@@ -12,6 +14,7 @@ const LoginPAge = () => {
 
   const { isPending, error, login_mutation } = useLogin();
   const { theme } = useThemeStore();
+  const { mutate: googleLoginMutation, isPending: googlePending } = useGoogleLogin();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -87,7 +90,7 @@ const LoginPAge = () => {
                   <button
                     type="submit"
                     className="btn btn-primary w-full"
-                    disabled={isPending}
+                    disabled={isPending || googlePending}
                   >
                     {isPending ? (
                       <>
@@ -98,6 +101,19 @@ const LoginPAge = () => {
                       "Sign In"
                     )}
                   </button>
+
+                  <div className="flex flex-col items-center gap-3 mt-4">
+                    <div className="divider text-xs opacity-50 uppercase my-0 w-full">Or</div>
+                    <GoogleLogin
+                      onSuccess={(credentialResponse) => {
+                        googleLoginMutation(credentialResponse.credential);
+                      }}
+                      onError={() => {
+                        console.error("Google Login failed");
+                      }}
+                      useOneTap
+                    />
+                  </div>
 
                   <div className="text-center mt-4">
                     <p className="text-sm">

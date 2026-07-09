@@ -25,12 +25,12 @@ function OnboardingPage() {
   const queryClient = useQueryClient();
 
   const [formState, setformState] = useState({
-    Fullname: authUserData?.Fullname || "",
-    bio: authUserData?.bio || "",
-    nativeLanguage: authUserData?.nativeLanguage || "",
-    learningLanguage: authUserData?.learningLanguage || "",
-    location: authUserData?.location || "",
-    profilePic: authUserData?.profilePic || "",
+    Fullname: authUserData?.user?.Fullname || "",
+    bio: authUserData?.user?.bio || "",
+    nativeLanguage: authUserData?.user?.nativeLanguage || "",
+    learningLanguage: authUserData?.user?.learningLanguage || "",
+    location: authUserData?.user?.location || "",
+    profilePic: authUserData?.user?.profilePic || "",
   });
 
   const { mutate: onBoarding_Mutation, isPending } = useMutation({
