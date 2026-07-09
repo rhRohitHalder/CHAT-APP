@@ -6,7 +6,7 @@ const resolver = new dnsPromises.Resolver();
 resolver.setServers(["1.1.1.1", "8.8.8.8", "208.67.222.222", "9.9.9.9"]);
 
 export const connectDB = async () => {
-  let uri = process.env.MONGODB_URI;
+  let uri = process.env.MONGODB_URI ? process.env.MONGODB_URI.trim() : "";
 
   if (uri && uri.startsWith("mongodb+srv://")) {
     try {
