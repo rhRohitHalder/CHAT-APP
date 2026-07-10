@@ -1,6 +1,7 @@
 # CHAT-APP Project Architecture & Technical Documentation
 
 This document serves as the master technical blueprint and maintenance reference for the language learning chat application codebase. It provides a detailed, first-principles analysis of the entire system architecture, module specifications, data flows, and design decisions.
+<img width="1030" height="887" alt="image" src="https://github.com/user-attachments/assets/1ba00103-227c-4f31-a0b3-a5d385c6790c" />
 
 ---
 
