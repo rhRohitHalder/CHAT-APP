@@ -15,31 +15,69 @@ async function get_Stream_Token(req, res) {
   }
 }
 
+function extractJSONArray(text) {
+  const match = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+  return match ? match[0] : null;
+}
+
 async function get_Smart_Reply_Suggestions(req, res) {
   const user = req.user;
   const learningLanguage = user.learningLanguage || "Spanish";
   const nativeLanguage = user.nativeLanguage || "English";
   const { messages } = req.body;
+  const isDev = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+
+  console.log("=== Smart Reply Suggestions Pipeline Started ===");
+  console.log(`User: ${user.Fullname} (ID: ${user._id})`);
+  console.log(`Languages: Native="${nativeLanguage}", Learning="${learningLanguage}"`);
+  console.log(`Total messages in request context: ${messages ? messages.length : 0}`);
 
   try {
     const hfToken = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY;
+    console.log(`Hugging Face Token configuration status: ${hfToken ? "CONFIGURED (Trimming applied)" : "MISSING"}`);
+
     if (!hfToken) {
       console.warn("Hugging Face API token is not configured. Falling back to default suggestions.");
+      if (isDev) {
+        return res.status(500).json({
+          message: "Hugging Face token missing in environment variables.",
+          fallbackTriggered: "TokenMissing"
+        });
+      }
       return res.status(200).json({
-        suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage)
+        suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage),
+        fallbackTriggered: "TokenMissing"
       });
     }
 
     const model = process.env.HF_MODEL || "Qwen/Qwen2.5-7B-Instruct";
-    const systemPrompt = `You are a helpful language learning assistant. The user is a native speaker of "${nativeLanguage}" and is learning "${learningLanguage}".
-Based on the chat history between the user and their partner, generate exactly 3 context-aware, natural, and friendly reply suggestions in "${learningLanguage}" that help the user respond to the last message and practice conversational skills.
-For each suggestion, provide its translation in "${nativeLanguage}" and a very brief explanation/tip (max 5 words) in "${nativeLanguage}" about when to use it or its grammatical context.
+    console.log(`Target Hugging Face Model: "${model}"`);
 
-Format your entire response as a valid JSON array of objects. Do not include markdown code block syntax (like \`\`\`json) or any other text before/after the JSON.
-Each object in the array must have exactly these keys:
-- "text": The suggested reply in "${learningLanguage}".
-- "translation": The translation of the reply in "${nativeLanguage}".
-- "explanation": A brief tip (max 5 words) in "${nativeLanguage}" about the context or usage.`;
+    const systemPrompt = `You are an expert AI language learning assistant and native speaker of "${learningLanguage}". The user's native language is "${nativeLanguage}" and they are learning "${learningLanguage}".
+Analyze the provided chat history between the user (role: "assistant") and their conversation partner (role: "user").
+Your task is to generate exactly 3 natural, conversational, and context-aware reply suggestions in "${learningLanguage}".
+
+Requirements:
+1. The replies must directly respond to the partner's most recent message, maintaining the context and flow of the conversation.
+2. The suggestions must be distinct from one another:
+   - Suggestion 1: Casual/Friendly (e.g., standard response, enthusiastic agreement).
+   - Suggestion 2: Inquisitive (e.g., answering the question and asking a follow-up question to keep the conversation going).
+   - Suggestion 3: Expressive/Alternative (e.g., expressing a personal opinion, sharing a feeling, or using a common idiom).
+3. Do NOT output generic greetings unless the conversation is just beginning.
+4. For each suggestion, provide:
+   - "text": The reply in "${learningLanguage}".
+   - "translation": The exact translation of the reply in the user's native language ("${nativeLanguage}").
+   - "explanation": A brief, helpful grammar tip, usage note, or cultural context (max 8 words) in "${nativeLanguage}" explaining why or when to use this specific reply.
+
+You must return ONLY a raw JSON array of objects. Do not include markdown code fences (like \`\`\`json) or any conversational introduction/conclusion.
+Format:
+[
+  {
+    "text": "Reply in ${learningLanguage}",
+    "translation": "Translation in ${nativeLanguage}",
+    "explanation": "Brief context/tip"
+  }
+]`;
 
     const chatContext = (messages || []).slice(-6).map(m => {
       const isCurrentUser = m.user?.id === user._id.toString() || m.userId === user._id.toString();
@@ -48,6 +86,9 @@ Each object in the array must have exactly these keys:
         content: m.text || ""
       };
     });
+
+    console.log("Constructed request context payload:");
+    console.log(JSON.stringify(chatContext, null, 2));
 
     const response = await fetch(`https://router.huggingface.co/v1/chat/completions`, {
       method: "POST",
@@ -66,47 +107,88 @@ Each object in the array must have exactly these keys:
       })
     });
 
+    console.log(`Hugging Face API response HTTP status: ${response.status}`);
+
     if (!response.ok) {
       const errText = await response.text();
-      console.error(`Hugging Face API error (status ${response.status}): ${errText}`);
+      console.error(`Hugging Face API error response content: ${errText}`);
+      if (isDev) {
+        return res.status(500).json({
+          message: `Hugging Face API call failed with status ${response.status}`,
+          errorResponse: errText,
+          fallbackTriggered: "ApiErrorResponse"
+        });
+      }
       return res.status(200).json({
-        suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage)
+        suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage),
+        fallbackTriggered: "ApiErrorResponse"
       });
     }
 
     const data = await response.json();
     let content = data.choices?.[0]?.message?.content || "";
+    console.log("Raw output content returned by model:");
+    console.log(content);
     
-    // Clean and parse JSON
-    let cleanText = content.trim();
-    if (cleanText.startsWith("```json")) {
-      cleanText = cleanText.substring(7);
-    } else if (cleanText.startsWith("```")) {
-      cleanText = cleanText.substring(3);
+    // Extract JSON array robustly
+    const jsonString = extractJSONArray(content);
+    console.log(`Extracted JSON array string: ${jsonString ? "SUCCESS" : "FAILED (Null)"}`);
+
+    if (!jsonString) {
+      console.warn("Could not extract any JSON array structure from model content.");
+      if (isDev) {
+        return res.status(500).json({
+          message: "Failed to extract valid JSON array structure from model response.",
+          rawContent: content,
+          fallbackTriggered: "JsonExtractionFailure"
+        });
+      }
+      return res.status(200).json({
+        suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage),
+        fallbackTriggered: "JsonExtractionFailure"
+      });
     }
-    if (cleanText.endsWith("```")) {
-      cleanText = cleanText.substring(0, cleanText.length - 3);
-    }
-    cleanText = cleanText.trim();
 
     try {
-      const suggestions = JSON.parse(cleanText);
+      const suggestions = JSON.parse(jsonString);
+      console.log("Successfully parsed JSON content. Record count:", suggestions.length);
+      console.log("Parsed suggestions payload:", JSON.stringify(suggestions, null, 2));
+
       if (Array.isArray(suggestions) && suggestions.length > 0) {
         return res.status(200).json({ suggestions });
+      } else {
+        console.warn("Parsed suggestions payload is empty or not an array.");
       }
     } catch (parseError) {
-      console.error("Error parsing Hugging Face JSON response:", parseError, "Raw content:", content);
+      console.error("JSON parsing error caught:", parseError.message);
+      if (isDev) {
+        return res.status(500).json({
+          message: "JSON parsing error on model output.",
+          error: parseError.message,
+          rawExtractedString: jsonString,
+          fallbackTriggered: "JsonParseFailure"
+        });
+      }
     }
 
     // Fallback if parsing fails or returns invalid suggestions
     return res.status(200).json({
-      suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage)
+      suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage),
+      fallbackTriggered: "ParsingValidationFailure"
     });
 
   } catch (error) {
-    console.error("Error in get_Smart_Reply_Suggestions:", error);
+    console.error("Exception caught in get_Smart_Reply_Suggestions:", error);
+    if (isDev) {
+      return res.status(500).json({
+        message: "Internal exception caught in smart suggestions controller.",
+        error: error.message,
+        fallbackTriggered: "ControllerException"
+      });
+    }
     return res.status(200).json({
-      suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage)
+      suggestions: getFallbackSuggestions(learningLanguage, nativeLanguage),
+      fallbackTriggered: "ControllerException"
     });
   }
 }
