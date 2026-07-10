@@ -83,8 +83,9 @@ const ChatPage = () => {
         setChannel(currentChannel);
         setLoading(false);
       } catch (error) {
+        console.error("Failed to initialize chat:", error);
         initializedRef.current = false;
-        toast.error("Failed to initialize chat");
+        toast.error(`Failed to initialize chat: ${error.message || error}`);
       }
     };
     
