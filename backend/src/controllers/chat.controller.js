@@ -216,6 +216,11 @@ function getFallbackSuggestions(learningLanguage, nativeLanguage) {
       { text: "こんにちは！お元気ですか？", translation: "Hello! How are you?", explanation: "Polite greeting" },
       { text: "はい、私もそう思います。", translation: "Yes, I think so too.", explanation: "Polite agreement" },
       { text: "いいですね。もっと詳しく教えてください。", translation: "Sounds good. Please tell me more.", explanation: "Keeps the conversation going" }
+    ],
+    bengali: [
+      { text: "হ্যালো! কেমন আছেন?", translation: "Hello! How are you?", explanation: "Polite, standard greeting" },
+      { text: "হ্যাঁ, আমি আপনার সাথে একমত।", translation: "Yes, I agree with you.", explanation: "Expresses agreement" },
+      { text: "দারুণ! এই বিষয়ে আরও বলুন।", translation: "Great! Tell me more about this.", explanation: "Keeps the conversation going" }
     ]
   };
 
