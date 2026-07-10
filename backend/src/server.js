@@ -1,5 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
+// Load environment variables immediately before importing local routers/controllers
+dotenv.config();
+
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.routes.js";
@@ -19,7 +22,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-dotenv.config();
 const port = process.env.PORT || 5001;
 const isProduction = process.env.NODE_ENV === "production";
 
