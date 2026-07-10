@@ -7,10 +7,11 @@ const FriendCard = ({ friend }) => {
   return (
     <div className="card bg-base-200 hover:shadow-lg transition-all duration-300">
       <div className="card-body p-5 space-y-4">
-        {/* USER INFO */}
         <div className="flex items-center gap-3">
-          <div className="avatar size-14 rounded-full">
-            <img src={friend.profilePic} alt={friend.Fullname} />
+          <div className="avatar">
+            <div className="size-14 rounded-full overflow-hidden">
+              <img src={friend.profilePic} alt={friend.Fullname} className="w-full h-full object-cover" />
+            </div>
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-lg truncate">{friend.Fullname}</h3>

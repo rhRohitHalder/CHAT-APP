@@ -58,7 +58,7 @@ const ChatPage = () => {
             return;
           }
           
-          client = StreamChat.getInstance(STREAM_API_KEY);
+          client = StreamChat.getInstance(STREAM_API_KEY, { timeout: 10000 });
           token = tokenData.token;
           
           await client.connectUser(

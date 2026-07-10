@@ -135,8 +135,10 @@ const HomePage = () => {
                   >
                     <div className="card-body p-5 space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className="avatar size-16 rounded-full">
-                          <img src={user.profilePic} alt={user.FullName} />
+                        <div className="avatar">
+                          <div className="size-16 rounded-full overflow-hidden">
+                            <img src={user.profilePic} alt={user.Fullname} className="w-full h-full object-cover" />
+                          </div>
                         </div>
 
                         <div>

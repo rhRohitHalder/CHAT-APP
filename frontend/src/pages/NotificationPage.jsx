@@ -142,11 +142,14 @@ const NotificationPage = () => {
                     >
                       <div className="card-body p-5 space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="avatar size-14 rounded-full">
-                            <img
-                              src={request.sender.profilePic}
-                              alt={request.sender.Fullname}
-                            />
+                          <div className="avatar">
+                            <div className="size-14 rounded-full overflow-hidden">
+                              <img
+                                src={request.sender.profilePic}
+                                alt={request.sender.Fullname}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
                           </div>
                           <div className="flex-1">
                             <h4 className="font-semibold text-lg">

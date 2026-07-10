@@ -26,7 +26,7 @@ const GlobalMessageListener = () => {
         const tokenResponse = await getStreamToken();
         if (!tokenResponse?.token) return;
 
-        const client = StreamChat.getInstance(STREAM_API_KEY);
+        const client = StreamChat.getInstance(STREAM_API_KEY, { timeout: 10000 });
         
         await client.connectUser(
           {
